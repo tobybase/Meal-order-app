@@ -1,0 +1,5 @@
+{
+  "name": "KCIS DAA Gathering dinner meal order",
+  "description": "An elegant menu application for participants of the KCIS DAA Gathering dinner to pre-order their meals within a specified budget. The app features a dynamically generated menu and real-time order tracking.",
+  "requestFramePermissions": []
+}
