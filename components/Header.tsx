@@ -10,10 +10,10 @@ const Header: React.FC<HeaderProps> = ({ userName }) => {
     <header className="sticky top-0 bg-white z-40 shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-            <div className="text-xl font-bold text-gray-800">
+            <div className="text-2xl font-bold text-gray-800">
                 KCIS DAA Gathering
             </div>
-            <div className="text-sm font-medium text-gray-600">
+            <div className="text-base font-medium text-gray-600">
                 Ordering as <span className="font-bold text-gray-900">{userName}</span>
             </div>
         </div>

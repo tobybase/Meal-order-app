@@ -30,7 +30,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory })
                             key={category}
                             href={`#${category}`}
                             onClick={handleClick}
-                            className={`py-4 px-1 text-sm font-semibold whitespace-nowrap transition-colors duration-200 ${
+                            className={`py-4 px-1 text-base font-semibold whitespace-nowrap transition-colors duration-200 ${
                                 activeCategory === category
                                 ? 'text-gray-900 border-b-2 border-gray-900'
                                 : 'text-gray-500 hover:text-gray-800'

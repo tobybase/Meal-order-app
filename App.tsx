@@ -152,20 +152,48 @@ export default function App() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
     const fileName = `order-${userName.replace(/\s+/g, '_')}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.setAttribute('href', url);
     link.setAttribute('download', fileName);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    
+    // Create a detailed order string for the email body
+    const orderDetailsForEmail = order.map(item => 
+      `- ${item.name} x ${item.quantity} = $${(item.price * item.quantity).toFixed(2)}`
+    ).join('\n');
 
-    setSuccessMessage(`Order for ${userName} confirmed! A CSV file has been downloaded. Total: $${totalCost.toFixed(2)}`);
+    const recipient = 'tobylin@kcis.com.tw';
+    const subject = `Order for ${userName} - KCIS DAA Gathering Dinner`;
+    const body = `Hello,
+
+Here is my order for the KCIS DAA Gathering Dinner:
+
+Participant: ${userName}
+
+Order Details:
+${orderDetailsForEmail}
+
+--------------------
+Total Cost: $${totalCost.toFixed(2)}
+--------------------
+
+A CSV file of this order (${fileName}) has also been downloaded to my computer for record-keeping.
+
+Thank you,
+${userName}
+`;
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
+
+    setSuccessMessage(`Success! Your order is in the new Gmail tab and a CSV copy has been downloaded.`);
     setTimeout(() => {
       setSuccessMessage(null);
       setOrder([]);
-    }, 5000);
+    }, 6000);
   };
 
   const handleNameSubmit = (name: string) => {
@@ -213,6 +241,7 @@ export default function App() {
                       title={category}
                       items={menuByCategory[category]}
                       onAddItem={addToOrder}
+                      onUpdateQuantity={updateQuantity}
                       order={order}
                       hasDrink={hasDrink}
                       remainingBudget={remainingBudget}
@@ -236,7 +265,7 @@ export default function App() {
       </main>
       
       {successMessage && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white py-3 px-6 rounded-full shadow-lg z-50">
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white py-3 px-6 rounded-full shadow-lg z-50 text-base">
           {successMessage}
         </div>
       )}
