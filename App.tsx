@@ -7,12 +7,16 @@ import MenuSection from './components/MenuSection';
 import OrderSummary from './components/OrderSummary';
 import NamePrompt from './components/NamePrompt';
 import CategoryNav from './components/CategoryNav';
+import BudgetModal from './components/BudgetModal';
+import ConfirmationModal from './components/ConfirmationModal';
 
 const BUDGET = 1194;
 
 export default function App() {
   const [userName, setUserName] = useState<string>('');
   const [isNameSubmitted, setIsNameSubmitted] = useState<boolean>(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState<boolean>(false);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -103,7 +107,7 @@ export default function App() {
     if (newQuantity < 0) return;
     
     if (newQuantity === 0) {
-      removeFromOrder(itemId);
+      setOrder(order.filter(item => item.id !== itemId));
       return;
     }
 
@@ -121,84 +125,31 @@ export default function App() {
     setOrder(updatedOrder);
   };
 
-  const removeFromOrder = (itemId: number) => {
-    setOrder(order.filter(item => item.id !== itemId));
-  };
-
   const confirmOrder = () => {
     if (order.length === 0) {
       alert("Your order is empty.");
       return;
     }
-
-    const headers = ['Participant Name', 'Item Name', 'Category', 'Quantity', 'Unit Price', 'Total Price'];
-    const rows = order.map(item => [
-      `"${userName.replace(/"/g, '""')}"`,
-      `"${item.name.replace(/"/g, '""')}"`,
-      item.category,
-      item.quantity,
-      item.price.toFixed(2),
-      (item.price * item.quantity).toFixed(2)
-    ].join(','));
-    
-    const summaryRow = ['', '', '', '', 'Grand Total', totalCost.toFixed(2)].join(',');
-
-    const csvContent = [
-      headers.join(','),
-      ...rows,
-      summaryRow
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    const fileName = `order-${userName.replace(/\s+/g, '_')}-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    // Create a detailed order string for the email body
-    const orderDetailsForEmail = order.map(item => 
-      `- ${item.name} x ${item.quantity} = $${(item.price * item.quantity).toFixed(2)}`
-    ).join('\n');
-
-    const recipient = 'tobylin@kcis.com.tw';
-    const subject = `Order for ${userName} - KCIS DAA Gathering Dinner`;
-    const body = `Hello,
-
-Here is my order for the KCIS DAA Gathering Dinner:
-
-Participant: ${userName}
-
-Order Details:
-${orderDetailsForEmail}
-
---------------------
-Total Cost: $${totalCost.toFixed(2)}
---------------------
-
-A CSV file of this order (${fileName}) has also been downloaded to my computer for record-keeping.
-
-Thank you,
-${userName}
-`;
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(gmailUrl, '_blank');
-
-    setSuccessMessage(`Success! Your order is in the new Gmail tab and a CSV copy has been downloaded.`);
+    setIsConfirmationModalOpen(true);
+  };
+  
+  const handleCloseConfirmationModal = () => {
+    setIsConfirmationModalOpen(false);
+    setOrder([]);
+    setSuccessMessage("Thank you for your order!");
     setTimeout(() => {
-      setSuccessMessage(null);
-      setOrder([]);
-    }, 6000);
+        setSuccessMessage(null);
+    }, 5000);
   };
 
   const handleNameSubmit = (name: string) => {
     setUserName(name);
     setIsNameSubmitted(true);
+    setIsBudgetModalOpen(true);
+  };
+
+  const handleCloseBudgetModal = () => {
+    setIsBudgetModalOpen(false);
   };
 
   const menuByCategory = useMemo(() => {
@@ -219,12 +170,25 @@ ${userName}
   
   return (
     <div className="bg-white">
+      <BudgetModal
+        isOpen={isBudgetModalOpen}
+        onClose={handleCloseBudgetModal}
+        userName={userName}
+        budget={BUDGET}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={handleCloseConfirmationModal}
+        order={order}
+        totalCost={totalCost}
+        userName={userName}
+      />
       <Header userName={userName} />
       <CategoryNav categories={categoryOrder} activeCategory={activeCategory} />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="flex flex-col lg:flex-row lg:gap-8">
           <div className="w-full lg:w-[calc(100%-24rem)]">
-            {isLoading && (
+            {isLoading && !isBudgetModalOpen && (
               <div className="flex justify-center items-center h-96">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
               </div>
@@ -257,7 +221,6 @@ ${userName}
                 totalCost={totalCost}
                 budget={BUDGET}
                 onUpdateQuantity={updateQuantity}
-                onRemoveItem={removeFromOrder}
                 onConfirmOrder={confirmOrder}
               />
           </aside>

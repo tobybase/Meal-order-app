@@ -9,11 +9,10 @@ interface OrderSummaryProps {
   totalCost: number;
   budget: number;
   onUpdateQuantity: (itemId: number, newQuantity: number) => void;
-  onRemoveItem: (itemId: number) => void;
   onConfirmOrder: () => void;
 }
 
-const OrderSummary: React.FC<OrderSummaryProps> = ({ order, totalCost, budget, onUpdateQuantity, onRemoveItem, onConfirmOrder }) => {
+const OrderSummary: React.FC<OrderSummaryProps> = ({ order, totalCost, budget, onUpdateQuantity, onConfirmOrder }) => {
   const remainingBudget = budget - totalCost;
 
   return (
